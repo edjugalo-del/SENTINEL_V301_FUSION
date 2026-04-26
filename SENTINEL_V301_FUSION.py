@@ -8,12 +8,22 @@ st.title("🛢️ SENTINEL V301: Operación Insomnio")
 
 def get_data():
     tickers = ["BZ=F", "VIST", "YPF"]
-    # Pedimos los últimos 5 días para asegurar que siempre encuentre un cierre
-    df = yf.download(tickers, period="5d", interval="1m")
-    # Rellenamos los huecos del fin de semana con el último precio conocido
-    df_filled = df['Adj Close'].ffill()
-    # Retornamos la última fila con datos reales
-    return df_filled.iloc[-1]
+    precios = {}
+    
+    for t in tickers:
+        # Descargamos individualmente con un periodo largo para asegurar datos
+        df = yf.download(t, period="5d", interval="1d", progress=False)
+        
+        # Si la tabla tiene datos, tomamos el último valor de la primera columna
+        if not df.empty:
+            # .iloc[:,-1] toma el último valor disponible de la primera columna de precios
+            precios[t] = float(df.iloc[-1, 0])
+        else:
+            precios[t] = 0.0
+            
+    return pd.Series(precios)
+
+
 
 # --- MÓDULO 2: CÁLCULO DEL SERRUCHO (RATIO) ---
 prices = get_data()
