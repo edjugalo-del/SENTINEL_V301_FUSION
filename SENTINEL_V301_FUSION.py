@@ -109,22 +109,29 @@ with tab3:
 st.markdown("---")
 st.subheader("🌊 Visualizador del Serrucho (Arbitraje en Vivo)")
 
-# Calculamos el histórico del ratio para ver el "serrucho"
-hist_v = yf.download("VIST", period="5d", interval="60m")['Adj Close']
-hist_y = yf.download("YPF", period="5d", interval="60m")['Adj Close']
-serrucho = hist_v / hist_y
-
-# Graficamos el serrucho
-st.line_chart(serrucho)
-
-# Lógica de "Zonas de Ataque"
-r_actual = serrucho.iloc[-1]
-r_media = serrucho.mean()
-
-if r_actual > (r_media * 1.05):
-    st.error(f"🚨 **PUNTO DE SALIDA VISTA / ENTRADA YPF:** El ratio ({r_actual:.3f}) está muy arriba de la media. ¡Rotar ahora!")
-elif r_actual < (r_media * 0.95):
-    st.success(f"💎 **PUNTO DE RECOMPRA VISTA:** El ratio ({r_actual:.3f}) está en el piso. ¡Volver a Vista!")
-else:
-    st.info("⚖️ **ZONA NEUTRAL:** El serrucho está en equilibrio. No hay arbitraje claro.")
-
+# --- VISUALIZADOR DEL SERRUCHO BLINDADO (Línea 112 en adelante) ---
+try:
+    # Usamos 7 días para saltar el bache del fin de semana
+    hist_v = yf.download("VIST", period="7d", interval="60m")['Adj Close']
+    hist_y = yf.download("YPF", period="7d", interval="60m")['Adj Close']
+    
+    # Verificamos que tengamos datos antes de graficar
+    if not hist_v.empty and not hist_y.empty:
+        # Alineamos y calculamos el serrucho
+        serrucho = (hist_v.ffill() / hist_y.ffill())
+        st.line_chart(serrucho)
+        
+        # Lógica de "Zonas de Ataque"
+        r_actual = serrucho.iloc[-1]
+        r_media = serrucho.mean()
+        
+        if r_actual > (r_media * 1.05):
+            st.error(f"🚨 **ZONA DE ROTACIÓN:** Ratio ({r_actual:.3f}) muy alto. ¡Vender Vista / Entrar YPF!")
+        elif r_actual < (r_media * 0.95):
+            st.success(f"💎 **ZONA DE RECOMPRA:** Ratio ({r_actual:.3f}) en el piso. ¡Volver a Vista!")
+        else:
+            st.info(f"⚖️ **ZONA NEUTRAL:** El serrucho está equilibrado ({r_actual:.3f}).")
+    else:
+        st.info("📡 Sincronizando periscopio... Esperando apertura de mercados.")
+except:
+    st.info("📡 Sincronizando periscopio... El serrucho se activará con los datos de apertura.")
