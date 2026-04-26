@@ -9,7 +9,7 @@ st.title("🛢️ SENTINEL V301: Operación Insomnio")
 # --- AJUSTE DE PRECISIÓN PARA EL BRENT ---
 def get_data():
     # Probamos con el ticker del futuro continuo del ICE (Londres)
-    tickers = ["LCO=F", "VIST", "YPF"] 
+    tickers = ["LCOc1", "VIST", "YPF"] 
     # Si LCO=F sigue con delay, volvemos a BZ=F pero con period="5d" para forzar la actualización
     df = yf.download(tickers, period="5d", interval="1m", progress=False)
     
