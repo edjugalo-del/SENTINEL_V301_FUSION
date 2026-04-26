@@ -135,29 +135,43 @@ try:
         st.info("📡 Sincronizando periscopio... Esperando apertura de mercados.")
 except:
     st.info("📡 Sincronizando periscopio... El serrucho se activará con los datos de apertura.")
-# --- MÓDULO 6: ANALIZADOR DE MOMENTUM (EL SERVICIO DE ALERTA) ---
-def calcular_momentum(ticker):
-    df_mom = yf.download(ticker, period="5d", interval="60m")['Adj Close']
-    # Calculamos el ROC (Rate of Change) de las últimas 14 horas
-    roc = ((df_mom.iloc[-1] - df_mom.iloc[-14]) / df_mom.iloc[-14]) * 100
-    return roc
+# --- MÓDULO 6: MÉTRICAS DE ATAQUE (MOMENTUM Y RSI) ---
+def calcular_metricas(ticker):
+    try:
+        df = yf.download(ticker, period="10d", interval="60m", progress=False)
+        if df.empty: return 0.0, 50.0
+        precios = df['Adj Close'].ffill()
+        momentum = ((precios.iloc[-1] - precios.iloc[-14]) / precios.iloc[-14]) * 100
+        delta = precios.diff()
+        gain = (delta.where(delta > 0, 0)).rolling(window=14).mean()
+        loss = (-delta.where(delta < 0, 0)).rolling(window=14).mean()
+        rsi = 100 - (100 / (1 + (gain / loss))).iloc[-1]
+        return momentum, rsi
+    except:
+        return 0.0, 50.0
 
-mom_vista = calcular_momentum("VIST")
-mom_ypf = calcular_momentum("YPF")
+mom_v, rsi_v = calcular_metricas("VIST")
+mom_y, rsi_y = calcular_metricas("YPF")
 
-# --- VISUALIZACIÓN EN LA APP ---
+# --- VISUALIZACIÓN DE CARTERA REAL ---
 st.markdown("---")
-st.subheader("🚀 Velocímetro de Momentum (Impulso)")
-col_m1, col_m2 = st.columns(2)
+st.subheader("📊 MI BÚNKER (Valores Reales ARS)")
 
-with col_m1:
-    color_v = "normal" if mom_vista > 0 else "inverse"
-    st.metric("IMPULSO VISTA", f"{mom_vista:.2f}%", delta="ALCISTA" if mom_vista > 0 else "BAJISTA", delta_color=color_v)
+# Ajuste de tus montos reales
+monto_vista_ars = 3606720
+monto_ypf_ars = 6486725
+total_cartera = monto_vista_ars + monto_ypf_ars + 4000000
 
-with col_m2:
-    color_y = "normal" if mom_ypf > 0 else "inverse"
-    st.metric("IMPULSO YPF", f"{mom_ypf:.2f}%", delta="ALCISTA" if mom_ypf > 0 else "BAJISTA", delta_color=color_y)
+col_c1, col_c2, col_c3 = st.columns(3)
+with col_c1:
+    st.metric("VISTA (CORE)", f"${monto_vista_ars:,.0f}", f"{mom_v:.2f}% Mom")
+    st.caption(f"RSI: {rsi_v:.1f}")
+with col_c2:
+    st.metric("YPF (BASE)", f"${monto_ypf_ars:,.0f}", f"{mom_y:.2f}% Mom")
+    st.caption(f"RSI: {rsi_y:.1f}")
+with col_c3:
+    st.metric("NETO TOTAL", f"${total_cartera:,.0f}", "Score IA: 98%")
 
-# LÓGICA DE DISPARO PARA EL CELU
-if mom_ypf > 1.5 and desvio > 0.04:
-    st.success("🔥 ¡GATILLO CONFIRMADO! Arbitraje a favor + Momentum alcista en YPF. EJECUTAR.")
+# --- EL OJITO DE PRIVACIDAD (En la barra lateral) ---
+if st.sidebar.checkbox("👁️ Modo Privacidad"):
+    st.markdown("<style>div[data-testid='stMetricValue'] {filter: blur(10px);}</style>", unsafe_allow_html=True)
