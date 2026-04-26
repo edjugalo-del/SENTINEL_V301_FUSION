@@ -8,23 +8,24 @@ st.title("🛢️ SENTINEL V301: Operación Insomnio")
 
 # --- AJUSTE DE PRECISIÓN PARA EL BRENT ---
 def get_data():
-    # Pedimos los tres contratos posibles para el Brent
-    # BZ=F (Genérico), LCO=F (Londres), LCOc1 (Continuo)
-    tickers_brent = ["BZ=F", "LCO=F"]
-    tickers_acciones = ["VIST", "YPF"]
+    # 1. Traemos las acciones como siempre
+    tickers_acc = ["VIST", "YPF"]
+    df_acc = yf.download(tickers_acc, period="2d", interval="1m", progress=False)
+    datos = df_acc['Adj Close'].ffill().iloc[-1]
     
-    # 1. Descargamos Acciones
-    df_acc = yf.download(tickers_acciones, period="2d", interval="1m", progress=False)
-    datos_acc = df_acc['Adj Close'].ffill().iloc[-1]
+    # 2. Traemos el Brent pero con un truco de 'History' para forzar el último dato real
+    # Usamos LCO=F (ICE Brent) pero pidiendo el último minuto de la sesión actual
+    brent_data = yf.Ticker("LCO=F").history(period="1d", interval="1m")
     
-    # 2. Descargamos Brent (Buscamos el contrato más activo)
-    df_brent = yf.download(tickers_brent, period="2d", interval="1m", progress=False)
-    # Tomamos el valor máximo entre los contratos disponibles para capturar el 'Front Month'
-    brent_v301 = df_brent['Adj Close'].ffill().iloc[-1].max()
-    
-    # 3. Consolidamos el Búnker
-    datos_acc['BZ=F'] = brent_v301
-    return datos_acc
+    if not brent_data.empty:
+        brent_v301 = brent_data['Close'].iloc[-1]
+    else:
+        # Si LCO=F falla, usamos el CFD que suele estar más cerca de Investing
+        brent_v301 = yf.Ticker("BZ=F").history(period="1d")['Close'].iloc[-1]
+        
+    datos['BZ=F'] = brent_v301
+    return datos
+
 
 
 
