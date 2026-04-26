@@ -106,4 +106,25 @@ with tab3:
     st.success("🎯 **OBJETIVO VISTA:** u$s 85.00 (Target BofA)")
     st.success("🎯 **OBJETIVO YPF:** u$s 52.00 (Recuperación de valor)")
     st.write("💡 **CONSEJO CFO:** No elevar promedio en Vista. Rotar excedentes a YPF mientras el ratio esté arriba de 1.60.")
+st.markdown("---")
+st.subheader("🌊 Visualizador del Serrucho (Arbitraje en Vivo)")
+
+# Calculamos el histórico del ratio para ver el "serrucho"
+hist_v = yf.download("VIST", period="5d", interval="60m")['Adj Close']
+hist_y = yf.download("YPF", period="5d", interval="60m")['Adj Close']
+serrucho = hist_v / hist_y
+
+# Graficamos el serrucho
+st.line_chart(serrucho)
+
+# Lógica de "Zonas de Ataque"
+r_actual = serrucho.iloc[-1]
+r_media = serrucho.mean()
+
+if r_actual > (r_media * 1.05):
+    st.error(f"🚨 **PUNTO DE SALIDA VISTA / ENTRADA YPF:** El ratio ({r_actual:.3f}) está muy arriba de la media. ¡Rotar ahora!")
+elif r_actual < (r_media * 0.95):
+    st.success(f"💎 **PUNTO DE RECOMPRA VISTA:** El ratio ({r_actual:.3f}) está en el piso. ¡Volver a Vista!")
+else:
+    st.info("⚖️ **ZONA NEUTRAL:** El serrucho está en equilibrio. No hay arbitraje claro.")
 
