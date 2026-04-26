@@ -8,15 +8,23 @@ st.title("🛢️ SENTINEL V301: Operación Insomnio")
 
 # --- AJUSTE DE PRECISIÓN PARA EL BRENT ---
 def get_data():
-    # Probamos con el ticker del futuro continuo del ICE (Londres)
-    tickers = ["LCOc1", "VIST", "YPF"] 
-    # Si LCO=F sigue con delay, volvemos a BZ=F pero con period="5d" para forzar la actualización
-    df = yf.download(tickers, period="5d", interval="1m", progress=False)
+    # Pedimos los tres contratos posibles para el Brent
+    # BZ=F (Genérico), LCO=F (Londres), LCOc1 (Continuo)
+    tickers_brent = ["BZ=F", "LCO=F"]
+    tickers_acciones = ["VIST", "YPF"]
     
-    # --- TRUCO DEL CFO PARA EL DELAY ---
-    # Si el sistema sigue marcando 101, le inyectamos el valor de Investing manualmente
-    # para que el Kelly y el Ratio recalculen con la verdad del mercado.
-    return df['Adj Close'].ffill().iloc[-1]
+    # 1. Descargamos Acciones
+    df_acc = yf.download(tickers_acciones, period="2d", interval="1m", progress=False)
+    datos_acc = df_acc['Adj Close'].ffill().iloc[-1]
+    
+    # 2. Descargamos Brent (Buscamos el contrato más activo)
+    df_brent = yf.download(tickers_brent, period="2d", interval="1m", progress=False)
+    # Tomamos el valor máximo entre los contratos disponibles para capturar el 'Front Month'
+    brent_v301 = df_brent['Adj Close'].ffill().iloc[-1].max()
+    
+    # 3. Consolidamos el Búnker
+    datos_acc['BZ=F'] = brent_v301
+    return datos_acc
 
 
 
