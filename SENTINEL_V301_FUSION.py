@@ -82,4 +82,28 @@ if es_trampa:
     st.warning("⚠️ CUIDADO: El salto es eufórico y volátil. No comprar, es trampa de apertura.")
 elif brent > 105 and volatilidad_actual < 0.20:
     st.success("💎 TENDENCIA SÓLIDA: Subida con baja volatilidad. Es compra institucional real.")
+st.markdown("---")
+tab1, tab2, tab3 = st.tabs(["📊 CARTERA VIVA", "📡 RADAR GEOPOLÍTICO", "📈 ESTRATEGIA LARGO PLAZO"])
+
+with tab1:
+    st.subheader("Estado del Búnker")
+    # Aquí simulamos tu tenencia actual para ver el P&L en tiempo real
+    col_c1, col_c2 = st.columns(2)
+    with col_c1:
+        st.info(f"**VISTA:** 102 Nominales (CORE) | Valor: u$s {102 * vista:.2f}")
+    with col_c2:
+        st.info(f"**YPF:** 101 Nominales (BASE) | Valor: u$s {101 * ypf:.2f}")
+    st.write(f"**LIQUIDEZ DISPONIBLE:** $4,000,000 ARS")
+
+with tab2:
+    st.subheader("Radar de 'El dinero no duerme'")
+    st.write("🚢 **Estrecho de Ormuz:** Bloqueo activo. Impacto alcista: **ALTO**")
+    st.write("🇵🇰 **Conflicto Pakistán:** Sin señales de tregua. Riesgo suministro: **88%**")
+    st.warning("⚠️ El V301 detecta 'ruido' informativo. Validar con precio del Brent.")
+
+with tab3:
+    st.subheader("Rumbo a los u$s 100k - u$s 500k")
+    st.success("🎯 **OBJETIVO VISTA:** u$s 85.00 (Target BofA)")
+    st.success("🎯 **OBJETIVO YPF:** u$s 52.00 (Recuperación de valor)")
+    st.write("💡 **CONSEJO CFO:** No elevar promedio en Vista. Rotar excedentes a YPF mientras el ratio esté arriba de 1.60.")
 
