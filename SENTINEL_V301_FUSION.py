@@ -6,22 +6,14 @@ import pandas as pd
 st.set_page_config(page_title="SENTINEL V301 - Mando Central", layout="wide")
 st.title("🛢️ SENTINEL V301: Operación Insomnio")
 
+# --- AJUSTE DE PRECISIÓN PARA EL BRENT ---
 def get_data():
-    tickers = ["BZ=F", "VIST", "YPF"]
-    precios = {}
-    
-    for t in tickers:
-        # Descargamos individualmente con un periodo largo para asegurar datos
-        df = yf.download(t, period="5d", interval="1d", progress=False)
-        
-        # Si la tabla tiene datos, tomamos el último valor de la primera columna
-        if not df.empty:
-            # .iloc[:,-1] toma el último valor disponible de la primera columna de precios
-            precios[t] = float(df.iloc[-1, 0])
-        else:
-            precios[t] = 0.0
-            
-    return pd.Series(precios)
+    # Usamos el ticker del futuro continuo para máxima velocidad
+    tickers = ["BZ=F", "VIST", "YPF"] 
+    df = yf.download(tickers, period="2d", interval="1m", progress=False)
+    # Si yfinance está lento, podés usar "LCO=F" que es el de Londres (ICE)
+    return df['Adj Close'].ffill().iloc[-1]
+
 
 
 
