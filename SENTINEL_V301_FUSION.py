@@ -136,6 +136,7 @@ try:
 except:
     st.info("📡 Sincronizando periscopio... El serrucho se activará con los datos de apertura.")
 # --- MÓDULO 6: MÉTRICAS DE ATAQUE (MOMENTUM Y RSI) ---
+# --- MÓDULO 6: RADAR DE ATAQUE (MOMENTUM Y RSI) ---
 def calcular_metricas(ticker):
     try:
         df = yf.download(ticker, period="10d", interval="60m", progress=False)
@@ -145,7 +146,8 @@ def calcular_metricas(ticker):
         delta = precios.diff()
         gain = (delta.where(delta > 0, 0)).rolling(window=14).mean()
         loss = (-delta.where(delta < 0, 0)).rolling(window=14).mean()
-        rsi = 100 - (100 / (1 + (gain / loss))).iloc[-1]
+        rs = gain / loss
+        rsi = 100 - (100 / (1 + rs)).iloc[-1]
         return momentum, rsi
     except:
         return 0.0, 50.0
@@ -153,25 +155,26 @@ def calcular_metricas(ticker):
 mom_v, rsi_v = calcular_metricas("VIST")
 mom_y, rsi_y = calcular_metricas("YPF")
 
-# --- VISUALIZACIÓN DE CARTERA REAL ---
+# --- VISUALIZACIÓN EN LA APP (MOMENTUM Y CARTERA) ---
+st.markdown("---")
+st.subheader("🚀 Radar de Impulso y Fuerza (V301)")
+col_m1, col_m2 = st.columns(2)
+with col_m1:
+    st.metric("MOMENTUM VISTA", f"{mom_v:.2f}%", delta="IMPULSO" if mom_v >= 0 else "CAÍDA")
+    st.progress(int(rsi_v) if 0 <= rsi_v <= 100 else 50, text=f"Fuerza RSI: {rsi_v:.1f}")
+with col_m2:
+    st.metric("MOMENTUM YPF", f"{mom_y:.2f}%", delta="IMPULSO" if mom_y >= 0 else "CAÍDA")
+    st.progress(int(rsi_y) if 0 <= rsi_y <= 100 else 50, text=f"Fuerza RSI: {rsi_y:.1f}")
+
 st.markdown("---")
 st.subheader("📊 MI BÚNKER (Valores Reales ARS)")
-
-# Ajuste de tus montos reales
-monto_vista_ars = 3606720
-monto_ypf_ars = 6486725
+monto_vista_ars, monto_ypf_ars = 3606720, 6486725
 total_cartera = monto_vista_ars + monto_ypf_ars + 4000000
 
-col_c1, col_c2, col_c3 = st.columns(3)
-with col_c1:
-    st.metric("VISTA (CORE)", f"${monto_vista_ars:,.0f}", f"{mom_v:.2f}% Mom")
-    st.caption(f"RSI: {rsi_v:.1f}")
-with col_c2:
-    st.metric("YPF (BASE)", f"${monto_ypf_ars:,.0f}", f"{mom_y:.2f}% Mom")
-    st.caption(f"RSI: {rsi_y:.1f}")
-with col_c3:
-    st.metric("NETO TOTAL", f"${total_cartera:,.0f}", "Score IA: 98%")
+c1, c2, c3 = st.columns(3)
+with c1: st.metric("VISTA (CORE)", f"${monto_vista_ars:,.0f}")
+with c2: st.metric("YPF (BASE)", f"${monto_ypf_ars:,.0f}")
+with c3: st.metric("NETO TOTAL", f"${total_cartera:,.0f}", "Score IA: 98%")
 
-# --- EL OJITO DE PRIVACIDAD (En la barra lateral) ---
 if st.sidebar.checkbox("👁️ Modo Privacidad"):
     st.markdown("<style>div[data-testid='stMetricValue'] {filter: blur(10px);}</style>", unsafe_allow_html=True)
