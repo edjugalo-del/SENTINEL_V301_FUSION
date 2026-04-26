@@ -8,27 +8,23 @@ st.title("🛢️ SENTINEL V301: Operación Insomnio")
 
 # --- AJUSTE DE PRECISIÓN PARA EL BRENT ---
 def get_data():
-    # 1. Traemos las acciones como siempre
-    tickers_acc = ["VIST", "YPF"]
-    df_acc = yf.download(tickers_acc, period="2d", interval="1m", progress=False)
-    datos = df_acc['Adj Close'].ffill().iloc[-1]
+    # Usamos tickers individuales para evitar que las tablas se mezclen
+    tickers = {"BZ=F": "BZ=F", "VIST": "VIST", "YPF": "YPF"}
+    precios = {}
     
-    # 2. Traemos el Brent pero con un truco de 'History' para forzar el último dato real
-    # Usamos LCO=F (ICE Brent) pero pidiendo el último minuto de la sesión actual
-    brent_data = yf.Ticker("LCO=F").history(period="1d", interval="1m")
-    
-    if not brent_data.empty:
-        brent_v301 = brent_data['Close'].iloc[-1]
-    else:
-        # Si LCO=F falla, usamos el CFD que suele estar más cerca de Investing
-        brent_v301 = yf.Ticker("BZ=F").history(period="1d")['Close'].iloc[-1]
-        
-    datos['BZ=F'] = brent_v301
-    return datos
-
-
-
-
+    for nombre, ticker in tickers.items():
+        try:
+            # Bajamos 5 días para saltar el bache del domingo
+            df = yf.download(ticker, period="5d", interval="1m", progress=False)
+            if not df.empty:
+                # La "llave maestra": agarramos el último precio sin importar el nombre de la columna
+                precios[nombre] = float(df.iloc[-1, 0])
+            else:
+                precios[nombre] = 0.0
+        except:
+            precios[nombre] = 0.0
+            
+    return pd.Series(precios)
 
 # --- MÓDULO 2: CÁLCULO DEL SERRUCHO (RATIO) ---
 prices = get_data()
