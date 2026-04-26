@@ -8,10 +8,14 @@ st.title("🛢️ SENTINEL V301: Operación Insomnio")
 
 # --- AJUSTE DE PRECISIÓN PARA EL BRENT ---
 def get_data():
-    # Usamos el ticker del futuro continuo para máxima velocidad
-    tickers = ["BZ=F", "VIST", "YPF"] 
-    df = yf.download(tickers, period="2d", interval="1m", progress=False)
-    # Si yfinance está lento, podés usar "LCO=F" que es el de Londres (ICE)
+    # Probamos con el ticker del futuro continuo del ICE (Londres)
+    tickers = ["LCO=F", "VIST", "YPF"] 
+    # Si LCO=F sigue con delay, volvemos a BZ=F pero con period="5d" para forzar la actualización
+    df = yf.download(tickers, period="5d", interval="1m", progress=False)
+    
+    # --- TRUCO DEL CFO PARA EL DELAY ---
+    # Si el sistema sigue marcando 101, le inyectamos el valor de Investing manualmente
+    # para que el Kelly y el Ratio recalculen con la verdad del mercado.
     return df['Adj Close'].ffill().iloc[-1]
 
 
