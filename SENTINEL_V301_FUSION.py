@@ -64,9 +64,11 @@ noticia_paz = st.sidebar.checkbox("¿Hay rumores de tregua/paz?")
 if noticia_paz and brent > 105:
     st.sidebar.info("🤖 V301: Rumores no validados por el precio. Es RUIDO.")
 # --- MÓDULO 4: LA CARTA EN LA MANGA (GAMMA/VOLATILIDAD) ---
-# Medimos la desviación estándar (miedo) de los últimos 20 minutos
-hist_brent = yf.download("BZ=F", period="1d", interval="1m")['Adj Close']
-volatilidad_actual = hist_brent.std()
+try:
+    hist_brent = yf.download("BZ=F", period="5d", interval="1h")['Adj Close']
+    volatilidad_actual = hist_brent.std()
+except:
+    volatilidad_actual = 0.0 # Respaldo si el mercado está cerrado
 
 # --- MÓDULO 5: DETECTOR DE "SOBRECALENTAMIENTO" ---
 # Si el precio sube pero la volatilidad es extrema, es una TRAMPA
