@@ -6,12 +6,14 @@ import pandas as pd
 st.set_page_config(page_title="SENTINEL V301 - Mando Central", layout="wide")
 st.title("🛢️ SENTINEL V301: Operación Insomnio")
 
-# --- MÓDULO 1: INGESTA DE DATOS VIVOS ---
 def get_data():
-    # Chupamos Brent, Vista e YPF (ADRs para el arbitraje real)
     tickers = ["BZ=F", "VIST", "YPF"]
-    data = yf.download(tickers, period="1d", interval="1m").iloc[-1]
-    return data['Adj Close']
+    # Pedimos los últimos 5 días para asegurar que siempre encuentre un cierre
+    df = yf.download(tickers, period="5d", interval="1m")
+    # Rellenamos los huecos del fin de semana con el último precio conocido
+    df_filled = df['Adj Close'].ffill()
+    # Retornamos la última fila con datos reales
+    return df_filled.iloc[-1]
 
 # --- MÓDULO 2: CÁLCULO DEL SERRUCHO (RATIO) ---
 prices = get_data()
