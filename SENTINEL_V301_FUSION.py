@@ -135,3 +135,29 @@ try:
         st.info("📡 Sincronizando periscopio... Esperando apertura de mercados.")
 except:
     st.info("📡 Sincronizando periscopio... El serrucho se activará con los datos de apertura.")
+# --- MÓDULO 6: ANALIZADOR DE MOMENTUM (EL SERVICIO DE ALERTA) ---
+def calcular_momentum(ticker):
+    df_mom = yf.download(ticker, period="5d", interval="60m")['Adj Close']
+    # Calculamos el ROC (Rate of Change) de las últimas 14 horas
+    roc = ((df_mom.iloc[-1] - df_mom.iloc[-14]) / df_mom.iloc[-14]) * 100
+    return roc
+
+mom_vista = calcular_momentum("VIST")
+mom_ypf = calcular_momentum("YPF")
+
+# --- VISUALIZACIÓN EN LA APP ---
+st.markdown("---")
+st.subheader("🚀 Velocímetro de Momentum (Impulso)")
+col_m1, col_m2 = st.columns(2)
+
+with col_m1:
+    color_v = "normal" if mom_vista > 0 else "inverse"
+    st.metric("IMPULSO VISTA", f"{mom_vista:.2f}%", delta="ALCISTA" if mom_vista > 0 else "BAJISTA", delta_color=color_v)
+
+with col_m2:
+    color_y = "normal" if mom_ypf > 0 else "inverse"
+    st.metric("IMPULSO YPF", f"{mom_ypf:.2f}%", delta="ALCISTA" if mom_ypf > 0 else "BAJISTA", delta_color=color_y)
+
+# LÓGICA DE DISPARO PARA EL CELU
+if mom_ypf > 1.5 and desvio > 0.04:
+    st.success("🔥 ¡GATILLO CONFIRMADO! Arbitraje a favor + Momentum alcista en YPF. EJECUTAR.")
